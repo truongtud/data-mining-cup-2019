@@ -2,13 +2,16 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import csv
 import numpy as np
-from sklearn.preprocessing import MinMaxScaler,StandardScaler,RobustScaler
+from sklearn.preprocessing import MinMaxScaler,StandardScaler,RobustScaler,OneHotEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 from sklearn.tree import DecisionTreeClassifier # Import Decision Tree Classifier
 from sklearn import metrics #Import scikit-learn metrics module for accuracy calculation
 from sklearn import svm
 from sklearn import naive_bayes
+
+
+import seaborn as sns
 def read_data(file):
     df=pd.read_csv(file,delimiter='|',encoding='ascii');
     return df
@@ -22,9 +25,26 @@ def fraud_instances_groupby(fraud_df,column_name):
 
 def training_data(df):
     X_train=df.iloc[:,0:9]
-    #Y_train=df.iloc[:,9]
     Y_train=df.fraud
+    trustLevels=df.iloc[:,0]
+    #levels=[1,2,3,4,5,6]
+    #onehot_encoder = OneHotEncoder(sparse=False)
+    #one_hot_trustLevels=onehot_encoder.fit_transform(trustLevels.values.reshape(-1,1))
+    X_train=pd.concat([pd.get_dummies(X_train['trustLevel'],prefix='trustLevel'),X_train],axis=1,join='inner')
+    #correlation(X_train)
+    X_train.drop(['trustLevel'],axis=1,inplace=True)
+    print(X_train.iloc[1,:])
     return X_train,Y_train
+
+def one_hot_trust_level(X_train):
+    X_train=pd.concat([pd.get_dummies(X_train['trustLevel'],prefix='trustLevel'),X_train],axis=1,join='inner')
+    X_train.drop(['trustLevel'],axis=1,inplace=True)
+    return  X_train
+
+def correlation(X):
+    corr=X.corr()
+    sns.heatmap(corr)
+    plt.show()
 
 def scale(X,scaler):
     return scaler.fit_transform(X)
@@ -33,6 +53,7 @@ def scale(X,scaler):
 df=read_data('../DMC_2019_task/train.csv')
 fraud_df=fraud_instances(df)
 groupByTrustLevel=fraud_instances_groupby(fraud_df,'trustLevel')
+#print(list(groupByTrustLevel)[1])
 #print(groupByTrustLevel.count())
 #print(fraud_df.head())
 #print(fraud_df.count())
