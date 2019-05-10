@@ -4,12 +4,7 @@ import csv
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler, OneHotEncoder, Normalizer,MaxAbsScaler
 from sklearn.model_selection import train_test_split
-from sklearn.decomposition import PCA
-from sklearn.tree import DecisionTreeClassifier  # Import Decision Tree Classifier
-from sklearn import metrics  # Import scikit-learn metrics module for accuracy calculation
-from sklearn import svm
-from sklearn import naive_bayes
-
+from sklearn.preprocessing import LabelEncoder
 import seaborn as sns
 
 
@@ -31,22 +26,29 @@ def fraud_instances_groupby(fraud_df, column_name):
 
 
 def labeled_data(df):
-    X_train = df.iloc[:, 0:9]
-    Y_train = df.iloc[:, 9]
+    X = df.iloc[:, 0:9]
+    #Y_train =np.array(list(df.iloc[:, 9].map(lambda x:np.array([1,0]) if x==0 else np.array([0,1]))))
+    Y=df.iloc[:,9]
+
+    #label_encoder = LabelEncoder()
+    #Y_train= label_encoder.fit_transform(df.iloc[:, 9])
+
     # trustLevels=df.iloc[:,0]
     # levels=[1,2,3,4,5,6]
     # onehot_encoder = OneHotEncoder(sparse=False)
     # one_hot_trustLevels=onehot_encoder.fit_transform(trustLevels.values.reshape(-1,1))
     # correlation(X_train)
+    X_train, X_test, y_train, y_test=split_data(X,Y)
     X_train=one_hot_trust_level(X_train)
+    X_test=one_hot_trust_level(X_test)
     # print(X_train.iloc[1,:])
-    return X_train, Y_train
+    return X_train, X_test, y_train, y_test
 
 
-def one_hot_trust_level(X_train):
-    X_train = pd.concat([pd.get_dummies(X_train['trustLevel'], prefix='trustLevel'), X_train], axis=1, join='inner')
-    X_train.drop(['trustLevel'], axis=1, inplace=True)
-    return X_train
+def one_hot_trust_level(X):
+    X = pd.concat([pd.get_dummies(X['trustLevel'], prefix='trustLevel'), X], axis=1, join='inner')
+    X.drop(['trustLevel'], axis=1, inplace=True)
+    return X
 
 
 def correlation(X):
@@ -112,5 +114,18 @@ def oversampling(X, y):
 
 
 def split_data(X, y):
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=True)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=True,random_state=50)
     return X_train, X_test, y_train, y_test
+
+
+def prepare_data(scaler):
+    labeled_df = read_data('../DMC_2019_task/train.csv')
+    unlabeled_df = read_data('../DMC_2019_task/test.csv')
+    X_train, X_test, y_train, y_test = labeled_data(labeled_df)
+    unlabeled_X = one_hot_trust_level(unlabeled_df)
+    X = pd.concat([X_train,X_test, unlabeled_X])
+    scaler.fit(X)
+    #X = scaler.transform(X)
+    X_train = scale(X_train, scaler)
+    X_test=scale(X_test,scaler)
+    return X_train,X_test,y_train,y_test

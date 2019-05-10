@@ -18,7 +18,7 @@ def plot_2d_space(labeled_X, labeled_y, unlabeled_X, label='Classes'):
             c=c, label=l, marker=m
         )
 
-    #plt.scatter(unlabeled_X[:, 0], unlabled_X[:, 1], c='green', marker='*', label=2)
+    plt.scatter(unlabeled_X[:, 0], unlabled_X[:, 1], c='green', marker='*', label=2)
     plt.title(label)
     plt.legend(loc='upper right')
     plt.show()
@@ -33,7 +33,7 @@ def plot_3d_space(labeled_X, labeled_y, unlabeled_X, label='Classes'):
         ax.scatter(
             labeled_X[labeled_y == l, 0],
             labeled_X[labeled_y == l, 1],
-            labeled_X[labeled_y == l, 2],
+            #labeled_X[labeled_y == l, 2],
             c=c, label=l, marker=m
         )
 
@@ -51,11 +51,11 @@ scaler=StandardScaler()
 scaler.fit(X)
 labeled_X= scale(labeled_X, scaler)
 unlabled_X=scale(unlabled_X,scaler)
-pca = PCA(n_components=2)
-#tsne=TSNE(n_components=2)
+pca = PCA(n_components=3)
+#tsne=TSNE(n_components=3)
 pca_labeled_X=pca.fit_transform(labeled_X)
 pca_unlabeled_X=pca.fit_transform(unlabled_X)
-plot_2d_space(pca.fit_transform(labeled_X), labeled_y, pca.fit_transform(unlabled_X), 'PCA 3 components)')
+plot_2d_space(pca.fit_transform(labeled_X), labeled_y, pca.fit_transform(unlabled_X), 'PCA 3 components')
 import seaborn as sns
 #plt.style.use('seaborn')
 # 2D density plot:

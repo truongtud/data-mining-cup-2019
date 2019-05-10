@@ -6,7 +6,7 @@ from sklearn.metrics import precision_recall_fscore_support, f1_score
 from preprocessing import *
 import  numpy as np
 
-loaded_model=load_model('../models/pre-trained/model_autoencoder.h5')
+loaded_model=load_model('../models/pre-trained/model_autoencoder_relu_6_4_lr_0001.h5')
 print("Loaded model from disk")
 print(loaded_model.summary())
 
