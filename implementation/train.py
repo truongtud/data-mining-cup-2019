@@ -230,8 +230,8 @@ def print_metrics(custom_metrics):
 
 
 def training(X_train, y_train, X_test, y_test):
-    deep_nn(X_train, y_train, X_test, y_test)
-    # hybrid_model(scaled_X, y)
+    #deep_nn(X_train, y_train, X_test, y_test)
+    deep_hybrid_model(X_train, y_train, X_test, y_test)
     # compare_deep_nn_with_hybrid(X_train, y_train, X_test, y_test)
 
 
