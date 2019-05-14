@@ -6,13 +6,16 @@ from sklearn.metrics import precision_recall_fscore_support, f1_score
 from preprocessing import *
 import  numpy as np
 
-loaded_model=load_model('../models/pre-trained/model_autoencoder_relu_6_4_lr_0001.h5')
+loaded_model=load_model('../models/pre-trained/model_autoencoder_relu_6_4_lr_00001_tanh.h5')
 print("Loaded model from disk")
 print(loaded_model.summary())
 
 labeled_df = read_data('../DMC_2019_task/train.csv')
 unlabled_df=read_data('../DMC_2019_task/test.csv')
-labeled_X, labeled_y = labeled_data(labeled_df)
+labeled_X= labeled_df.iloc[:, 0:9]
+labeled_y=labeled_df.iloc[:,9]
+
+labeled_X=one_hot_trust_level(labeled_X)
 unlabled_X =one_hot_trust_level(unlabled_df)
 X=pd.concat([labeled_X,unlabled_X])
 scaler=StandardScaler()

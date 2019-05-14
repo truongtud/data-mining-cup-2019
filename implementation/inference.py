@@ -1,19 +1,34 @@
-from sklearn.metrics import recall_score, classification_report, auc, roc_curve
-from sklearn.metrics import precision_recall_fscore_support, f1_score
-from tensorflow.keras.models import model_from_json
-from preprocessing import *
-import  numpy as np
-json_file = open('model_deep_nn.json', 'r')
-loaded_model_json = json_file.read()
-#json_file.close()
-loaded_model = model_from_json(loaded_model_json)
-# load weights into new model
-loaded_model.load_weights("model_deep_nn.h5")
-print("Loaded model from disk")
+import numpy as np
+import pandas as pd
+from tensorflow.keras.models import load_model
 
-unlabled_X = scale(one_hot_trust_level(read_data('../DMC_2019_task/test.csv')),RobustScaler())
+from custom_losses import custom_focal_loss
+from preprocessing import prepare_real_test_data
 
-predicted=loaded_model.predict(unlabled_X)
 
-for i in range(len(unlabled_X)):
-    print('%s: %f'%(i+1,predicted[i]))
+# losses.custom_focal_loss=custom_focal_loss
+
+def predict(model_path, nn_type, X_test, output):
+    loaded_model = load_model(model_path, custom_objects={'custom_focal_loss': custom_focal_loss})
+    predictions = None
+    print("Loaded model from disk")
+    print(loaded_model.summary())
+    if nn_type == 'deep_supervised_autoencoder':
+        predictions = np.rint(np.asarray(loaded_model.predict(X_test)[1]))
+    else:
+        predictions = np.asarray(loaded_model.predict_classes(X_test))
+    pd.DataFrame(predictions, columns=['fraud'],dtype='int32').to_csv(output, index=False)
+
+
+X_test = prepare_real_test_data()
+# predict('../models/deep-supervised-autoencoder/deep_supervised_autoencoder_6_4_lr_001_tanh_0.h5',
+#         'deep_supervised_autoencoder', X_test, '../submissions/01_TU_Darmstadt_1.csv')
+# predict('../models/deep-supervised-autoencoder/deep_supervised_autoencoder_6_4_lr_001_tanh_1.h5',
+#         'deep_supervised_autoencoder', X_test, '../submissions/02_TU_Darmstadt_1.csv')
+
+for i in range(8):
+    predict('../models/deep-supervised-autoencoder/deep_supervised_autoencoder_with_fold_6_4_lr_001_custom_focal_loss_tanh_'+str(i)+'.h5',
+        'deep_supervised_autoencoder', X_test, '../submissions/'+str(i)+'_TU_Darmstadt_1.csv')
+
+
+

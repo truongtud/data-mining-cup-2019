@@ -9,9 +9,13 @@ import  numpy as np
 
 
 
-def evaluate(model,X_test,y_test):
-    predict = np.asarray(model.predict_classes(X_test))
-    targ = y_test
+def evaluate(model,X_test,y_test,nn_type=None):
+    predict=None
+    targ=y_test
+    if nn_type=='deep_supervised_autoencoder':
+        predict = np.around(np.asarray(model.predict(X_test)[1]))
+    else:
+        predict = np.asarray(model.predict_classes(X_test))
     cf_matrix=confusion_matrix(targ, predict)
     s=cf_matrix[1][1]*5-cf_matrix[0][1]*25-cf_matrix[1][0]*5
     avg_score=s/(cf_matrix[1][1]+cf_matrix[0][1]+cf_matrix[1][0])

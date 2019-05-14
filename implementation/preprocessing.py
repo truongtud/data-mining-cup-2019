@@ -114,18 +114,27 @@ def oversampling(X, y):
 
 
 def split_data(X, y):
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=True,random_state=50)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.15, shuffle=True,random_state=500)
     return X_train, X_test, y_train, y_test
 
 
-def prepare_data(scaler):
+def prepare_training_data(scaler):
     labeled_df = read_data('../DMC_2019_task/train.csv')
     unlabeled_df = read_data('../DMC_2019_task/test.csv')
     X_train, X_test, y_train, y_test = labeled_data(labeled_df)
     unlabeled_X = one_hot_trust_level(unlabeled_df)
     X = pd.concat([X_train,X_test, unlabeled_X])
     scaler.fit(X)
-    #X = scaler.transform(X)
     X_train = scale(X_train, scaler)
     X_test=scale(X_test,scaler)
     return X_train,X_test,y_train,y_test
+
+
+def prepare_real_test_data(scaler=StandardScaler()):
+    labeled_df = read_data('../DMC_2019_task/train.csv')
+    unlabeled_df = read_data('../DMC_2019_task/test.csv')
+    labeled_X= one_hot_trust_level(labeled_df.iloc[:,0:9])
+    unlabeled_X = one_hot_trust_level(unlabeled_df)
+    X = pd.concat([labeled_X, unlabeled_X])
+    scaler.fit(X)
+    return scale(unlabeled_X,scaler)

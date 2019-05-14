@@ -8,6 +8,9 @@ from tensorflow.keras.callbacks import Callback
 import  numpy as np
 
 class CustomMetrics(Callback):
+    def __init__(self, nn_type=None):
+        self.nn_type=nn_type
+
     def on_train_begin(self, logs={}):
         self.confusion = []
         self.precision = []
@@ -51,9 +54,15 @@ class CustomMetrics(Callback):
     def on_epoch_end(self, epoch, logs={}):
         #score = np.asarray(self.model.predict(self.validation_data[0]))
         threshold=0.5
-        #predict = np.round(np.asarray(self.model.predict(self.validation_data[0])>threshold))
-        predict = np.asarray(self.model.predict_classes(self.validation_data[0]))
-        targ = self.validation_data[1]
+        predict=None
+        targ=None
+        if self.nn_type=='deep_supervised_autoencoder':
+            predict = np.rint(np.asarray(self.model.predict(self.validation_data[1])[1]))
+            targ = self.validation_data[2]
+        else:
+            predict = np.rint(np.asarray(self.model.predict_classes(self.validation_data[0])))
+            targ = self.validation_data[1]
+        #print(predict)
         cf_matrix=confusion_matrix(targ, predict)
         s=cf_matrix[1][1]*5-cf_matrix[0][1]*25-cf_matrix[1][0]*5
         avg_score=s/(cf_matrix[1][1]+cf_matrix[0][1]+cf_matrix[1][0])
