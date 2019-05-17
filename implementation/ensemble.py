@@ -84,15 +84,15 @@ def compute_class_weight(y_train):
 
 
 sub_models = load_models(
-    '../models/deep-supervised-autoencoder-using-pre-trained-tanh-without-class_weights/deep_supervised_autoencoder_with_fold_6_4_lr_00001_custom_focal_loss_tanh_',
-    8)
+    '../models/deep-supervised-autoencoder-using-pre-trained-tanh-adam-gaussiannoise-dropout-005-gamma2-minmax_scale/deep_supervised_autoencoder_with_fold_6_4_lr_00001_custom_focal_loss_tanh_',
+    2)
 X_train, X_test, y_train, y_test = prepare_training_data(StandardScaler())
 #def run_stacked_model(sub_models,X_train, X_test, y_train, y_test):
-s_model = stacked_model(sub_models, is_using_deep_supervised_autoencoder=True)
-fit_stacked_model(s_model, X_train, y_train)
-predicted_y = np.rint(predict_stacked_model(s_model, X_test))
-cf_m = confusion_matrix(y_test, predicted_y)
-print(cf_m.ravel())
+#s_model = stacked_model(sub_models, is_using_deep_supervised_autoencoder=True)
+#fit_stacked_model(s_model, X_train, y_train)
+#predicted_y = np.rint(predict_stacked_model(s_model, X_test))
+#cf_m = confusion_matrix(y_test, predicted_y)
+#print(cf_m.ravel())
 print('sub models')
 is_using_deep_supervised_autoencoder = True
 for smodel in sub_models:

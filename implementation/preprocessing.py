@@ -114,7 +114,7 @@ def oversampling(X, y):
 
 
 def split_data(X, y):
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.15, shuffle=True,random_state=500)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.95, shuffle=True,random_state=500)
     return X_train, X_test, y_train, y_test
 
 

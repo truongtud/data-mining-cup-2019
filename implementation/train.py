@@ -15,7 +15,7 @@ from evaluate import *
 from preprocessing import *
 
 DROP_OUT_PROB = 0.05
-EPOCHS = 6000
+EPOCHS = 10000
 BATCH_SIZE = 32
 n_folds = 8
 PATIENCE = 300
@@ -24,7 +24,7 @@ DECODER = 'decoder'
 CLASSIFIER = 'classifier'
 CLASSIFIER_LOSS = custom_focal_loss
 isleakyrelu = False
-K.binary_crossentropy
+GAUSSIAN_NOISE=0.0001
 
 def scores(y_test, y_pred):
     cf_matrix = K.variable(metrics.confusion_matrix(y_test, y_pred))
@@ -210,25 +210,31 @@ def build_deep_supervised_autoencoder_model():
     input = layers.Input(shape=(14,))
     if not isleakyrelu:
         encoder = layers.Dense(units=6, activation=ACTIVATION, kernel_regularizer=regularizers.l2(l))(input)
+        #encoder=layers.GaussianNoise(GAUSSIAN_NOISE)(encoder)
     else:
         encoder = layers.Dense(units=6, kernel_regularizer=regularizers.l2(l))(input)
         encoder = leakyReLuLayer(encoder)
+        #encoder=layers.GaussianNoise(GAUSSIAN_NOISE)(encoder)
     encoder = layers.Dropout(DROP_OUT_PROB)(encoder)
     # encoder=layers.BatchNormalization(encoder)
     for i in range(n_units):
         if not isleakyrelu:
             encoder = layers.Dense(units=units[i], activation=ACTIVATION, kernel_regularizer=regularizers.l2(l))(
                 encoder)
+            #encoder=layers.GaussianNoise(GAUSSIAN_NOISE)(encoder)
         else:
             encoder = layers.Dense(units=units[i], kernel_regularizer=regularizers.l2(l))(encoder)
             encoder = leakyReLuLayer(encoder)
+            #encoder=layers.GaussianNoise(GAUSSIAN_NOISE)(encoder)
         encoder = layers.Dropout(DROP_OUT_PROB)(encoder)
         # encoder=layers.BatchNormalization(encoder)
     if not isleakyrelu:
         encoder = layers.Dense(units=4, activation=ACTIVATION, kernel_regularizer=regularizers.l2(l))(encoder)
+        #encoder=layers.GaussianNoise(GAUSSIAN_NOISE)(encoder)
     else:
         encoder = layers.Dense(units=4, kernel_regularizer=regularizers.l2(l))(encoder)
         encoder = leakyReLuLayer(encoder)
+        #encoder=layers.GaussianNoise(GAUSSIAN_NOISE)(encoder)
     latent = layers.Dropout(DROP_OUT_PROB)(encoder)
     # latent=layers.BatchNormalization(latent)
     # decoder
@@ -237,23 +243,29 @@ def build_deep_supervised_autoencoder_model():
         if not isleakyrelu:
             decoder = layers.Dense(units=units[n_units - i - 1], activation=ACTIVATION,
                                    kernel_regularizer=regularizers.l2(l))(decoder)
+            #decoder=layers.GaussianNoise(GAUSSIAN_NOISE)(decoder)
         else:
             decoder = layers.Dense(units=units[n_units - i - 1],
                                    kernel_regularizer=regularizers.l2(l))(decoder)
             decoder = leakyReLuLayer(decoder)
+            #decoder=layers.GaussianNoise(GAUSSIAN_NOISE)(decoder)
         decoder = layers.Dropout(DROP_OUT_PROB)(decoder)
         # decoder=layers.BatchNormalization(decoder)
         # model.add(layers.BatchNormalization())
     if not isleakyrelu:
         decoder = layers.Dense(units=6, activation=ACTIVATION, kernel_regularizer=regularizers.l2(l))(decoder)
+        #decoder=layers.GaussianNoise(GAUSSIAN_NOISE)(decoder)
     else:
         decoder = layers.Dense(units=6, kernel_regularizer=regularizers.l2(l))(decoder)
         decoder = leakyReLuLayer(decoder)
+        #decoder=layers.GaussianNoise(GAUSSIAN_NOISE)(decoder)
     decoder = layers.Dropout(DROP_OUT_PROB)(decoder)
     # decoder=layers.BatchNormalization(decoder)
     decoder = layers.Dense(units=14, name=DECODER)(decoder)
-    classifier = layers.Dense(units=3, activation=ACTIVATION)(latent)
-    classifier = layers.Dropout(DROP_OUT_PROB)(classifier)
+    #decoder=layers.GaussianNoise(GAUSSIAN_NOISE)(decoder)
+    classifier=latent
+    #classifier = layers.Dense(units=3, activation=ACTIVATION)(latent)
+    #classifier = layers.Dropout(DROP_OUT_PROB)(classifier)
     classifier = layers.Dense(units=1, activation='sigmoid', name=CLASSIFIER)(classifier)
     model = tf.keras.models.Model(inputs=input, outputs=[decoder, classifier], name='deep_supervised_autoencoder')
     losses = {
@@ -264,9 +276,9 @@ def build_deep_supervised_autoencoder_model():
         DECODER: 0.2,
         CLASSIFIER: 1.0
     }
-    init_lr = 0.0001
+    init_lr = 0.00005
     adam = Adam(lr=init_lr, decay=init_lr / EPOCHS)
-    sgd=SGD(lr=init_lr,momentum=0.9,decay=init_lr/EPOCHS)
+    #sgd=SGD(lr=init_lr,momentum=0.9,decay=init_lr/EPOCHS)
     model.compile(optimizer=adam, loss=losses, loss_weights=loss_weights)
     model.summary()
     plot_model(model, show_shapes=True, to_file='model_graph.png')
@@ -347,7 +359,7 @@ def build_deep_supervised_autoencoder_model_batchnorm():
 
 def run_deep_supervised_autoencoder_fold(X_train_fold, y_train_fold, X_val, y_val, class_weights, i_th_fold,
                                          use_pre_trained=False):
-    base_model = load_model('../models/pre-trained/model_autoencoder_relu_6_4_lr_00001_tanh.h5')
+    base_model = load_model('../models/pre-trained/model_autoencoder_relu_6_4_lr_0001.h5')
     print("Loaded pre-trained model from disk")
     base_model.trainable = True
     custom_metrics = CustomMetrics('deep_supervised_autoencoder')
@@ -361,7 +373,7 @@ def run_deep_supervised_autoencoder_fold(X_train_fold, y_train_fold, X_val, y_va
             model.layers[3].set_weights(base_model.layers[2].get_weights())
     file_path = None
     if use_pre_trained:
-        file_path = '../models/deep-supervised-autoencoder-using-pre-trained-tanh-without-class_weights/deep_supervised_autoencoder_with_fold_6_4_lr_00001_' + str(
+        file_path = '../models/deep-supervised-autoencoder-using-pre-trained-tanh-adam-gaussiannoise-dropout-005-gamma2-minmax_scale/deep_supervised_autoencoder_with_fold_6_4_lr_00001_' + str(
             CLASSIFIER_LOSS.__name__) + '_' + str(ACTIVATION) + '_' + str(i_th_fold) + '.h5'
     else:
         file_path = '../models/deep-supervised-autoencoder/deep_supervised_autoencoder_with_fold_6_4_lr_00001_' + str(
@@ -376,7 +388,7 @@ def run_deep_supervised_autoencoder_fold(X_train_fold, y_train_fold, X_val, y_va
     history = model.fit(X_train_fold, {DECODER: X_train_fold, CLASSIFIER: y_train_fold}, batch_size=BATCH_SIZE,
                         epochs=EPOCHS,
                         shuffle=True, verbose=0, validation_data=(X_val, {CLASSIFIER: y_val, DECODER: X_val}),
-                        #class_weight={CLASSIFIER: class_weights},
+                        class_weight={CLASSIFIER: class_weights},
                         callbacks=[model_es, model_cp, tensorboard, custom_metrics]).history
 
     plot_history(history, 'Deep_supervised_autoencoder_', i_th_fold)

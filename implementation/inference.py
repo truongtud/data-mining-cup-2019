@@ -27,7 +27,7 @@ X_test = prepare_real_test_data()
 #         'deep_supervised_autoencoder', X_test, '../submissions/02_TU_Darmstadt_1.csv')
 
 for i in range(8):
-    predict('../models/deep-supervised-autoencoder/deep_supervised_autoencoder_with_fold_6_4_lr_001_custom_focal_loss_tanh_'+str(i)+'.h5',
+    predict('../models/deep-supervised-autoencoder-using-pre-trained-tanh-adam-gaussiannoise-dropout-005-gamma2/deep_supervised_autoencoder_with_fold_6_4_lr_00001_custom_focal_loss_tanh_'+str(i)+'.h5',
         'deep_supervised_autoencoder', X_test, '../submissions/'+str(i)+'_TU_Darmstadt_1.csv')
 
 
